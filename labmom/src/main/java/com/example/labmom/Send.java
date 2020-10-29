@@ -9,20 +9,19 @@ import java.nio.charset.StandardCharsets;
 
 public class Send {
 
-    private static final String TASK_QUEUE_NAME = "task_queue";
+    private static final String EXCHANGE_NAME = "logs";
 
     public static void rabbit(String [] args) throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
-            channel.queueDeclare(TASK_QUEUE_NAME, true, false, false, null);
+            channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
 
-            String message = String.join(" ", args);
+            String message = args.length < 1 ? "mensaje enviado" :
+                    String.join(" ", args);
 
-            channel.basicPublish("", TASK_QUEUE_NAME,
-                    MessageProperties.PERSISTENT_TEXT_PLAIN,
-                    message.getBytes("UTF-8"));
+            channel.basicPublish(EXCHANGE_NAME, "", null, message.getBytes("UTF-8"));
             System.out.println(" [x] Sent '" + message + "'");
         }
     }
